@@ -27,13 +27,14 @@ namespace voiceApi.Controllers
         {
             public string Url { get; set; }
             public string filename { get; set; }
+            public string filepath { get; set; }
         }
-        [HttpGet]
+        [HttpPost]
         [Route("download")]
         public async Task<string> DownloadFile([FromBody] CustomModel3 convertedFile )
         {
 
-            string filePath = "C:\\Users\\Rishabh\\Documents\\Sound_recordings\\";
+            
             var filename = new FileInfo(convertedFile.filename);
             var client = new HttpClient();
             var response = await client.GetAsync(convertedFile.Url);
@@ -41,13 +42,13 @@ namespace voiceApi.Controllers
             using (var stream = await response.Content.ReadAsStreamAsync())
             {
                 
-                var fileInfo = new FileInfo(filePath + filename);
+                var fileInfo = new FileInfo(convertedFile.filepath + filename);
                 using (var fileStream = fileInfo.OpenWrite())
                 {
                     await stream.CopyToAsync(fileStream);
                 }
             }
-            return filePath + filename;
+            return convertedFile.filepath + filename;
         }
 
         // GET api/values/3
@@ -94,21 +95,19 @@ namespace voiceApi.Controllers
 
         public class CustomModel
         {
-            public string Server { get; set; }
+            public string server { get; set; }
+            public string filepath { get; set; }
         }
 
         [HttpPost]
         [Route("upload")]
-        public async Task<string> UploadFileServer([FromBody] CustomModel data)
+        public async Task<string> UploadFileServer([FromBody] CustomModel data )
         {
-            
-            string filepath = "C:\\Users\\Rishabh\\Documents\\Sound_recordings\\Recording.m4a";
-            string server = data.Server;
             using (var httpClient = new HttpClient())
             {
                 using (var form = new MultipartFormDataContent())
                 {
-                    using (var fs = System.IO.File.OpenRead(filepath))
+                    using (var fs = System.IO.File.OpenRead(data.filepath))
                     {
                         using (var streamContent = new StreamContent(fs))
                         {
@@ -117,9 +116,9 @@ namespace voiceApi.Controllers
                                 //fileContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
 
                                 // "file" parameter name should be the same as the server side input parameter name
-                                form.Add(fileContent, "file", Path.GetFileName(filepath));
+                                form.Add(fileContent, "file", Path.GetFileName(data.filepath));
                                 httpClient.DefaultRequestHeaders.Add("x-oc-api-key", "744be7d281d6b3b6871baef24cf58052");
-                                HttpResponseMessage response = await httpClient.PostAsync(server, form);
+                                HttpResponseMessage response = await httpClient.PostAsync(data.server, form);
                                 var strResponse = await response.Content.ReadAsStringAsync();
                                 var rootId = JsonConvert.DeserializeObject<UploadedFile>(strResponse);
                                 return rootId.id.job;

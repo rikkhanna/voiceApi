@@ -3,17 +3,18 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using voiceApi.BaseClasses;
 
 namespace voiceApi.VoiceRecognition
 {
     public class SpeakerVerificationMethods
     {
-        public static Guid SVEnrollSpeaker(SpeakerVerificationService svService)
+        public static Guid SVEnrollSpeaker(SpeakerVerificationService svService, EnrollSpeaker enrollSpeaker)
         {
             // Open the sound file and load it in
-            var speakerVerificationEnroll1 = File.OpenRead(Constants.AUDIO_DIRECTORY + "speakerVerificationEnroll1.wav");
-            var speakerVerificationEnroll2 = File.OpenRead(Constants.AUDIO_DIRECTORY + "speakerVerificationEnroll2.wav");
-            var speakerVerificationEnroll3 = File.OpenRead(Constants.AUDIO_DIRECTORY + "speakerVerificationEnroll3.wav");
+            var speakerVerificationEnroll1 = File.OpenRead(enrollSpeaker.enrollFile1);
+            var speakerVerificationEnroll2 = File.OpenRead(enrollSpeaker.enrollFile2);
+            var speakerVerificationEnroll3 = File.OpenRead(enrollSpeaker.enrollFile3);
 
             // Create the new profile
             Console.WriteLine("Create new profile for Speaker 1");
@@ -34,10 +35,12 @@ namespace voiceApi.VoiceRecognition
             return id;
         }
 
-        public static async Task<string> SVVerifySpeaker(SpeakerVerificationService svService)
+
+
+        public static async Task<string> SVVerifySpeaker(SpeakerVerificationService svService, VerifySpeaker verifySpeaker)
         {
             // Open the sound file and load it in
-            var speaker1Verification = File.OpenRead(Constants.AUDIO_DIRECTORY + "speakerVerification1.wav");
+            var speaker1Verification = File.OpenRead(verifySpeaker.file);
 
             // Enroll the speaker
             Console.WriteLine("Identify Speaker");

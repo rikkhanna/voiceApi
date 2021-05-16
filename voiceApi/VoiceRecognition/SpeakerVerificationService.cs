@@ -83,9 +83,9 @@ namespace voiceApi.VoiceRecognition
                 {
                     Console.WriteLine("Verifying...");
                     Profile[] selectedProfiles = await serviceClient.GetProfilesAsync();
-                var profileId = "";
-                var result = "";
-                var confidenceLevel = "";
+                    var profileId = "";
+                    var result = "";
+                    var confidenceLevel = "";
                     for (int i = 0; i < selectedProfiles.Length; i++)
                     {
                         Verification response = await serviceClient.VerifyAsync(audioStream, selectedProfiles[i].ProfileId);
