@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using voiceApi.BaseClasses;
@@ -13,6 +14,7 @@ using voiceApi.Utilities;
 
 namespace voiceApi.Controllers
 {
+    //[EnableCors("ApiCorsPolicy")]
     [Route("api/[controller]")]
     [ApiController]
     public class ValuesController : ControllerBase
@@ -31,7 +33,7 @@ namespace voiceApi.Controllers
         }
         [HttpPost]
         [Route("download")]
-        public async Task<string> DownloadFile([FromBody] CustomModel3 convertedFile )
+        public async Task<Dictionary<string, string>> DownloadFile([FromBody] CustomModel3 convertedFile )
         {
 
             
@@ -48,12 +50,15 @@ namespace voiceApi.Controllers
                     await stream.CopyToAsync(fileStream);
                 }
             }
-            return convertedFile.filepath + filename;
+            var output = new Dictionary<string, string>();
+            output["path"] = convertedFile.filepath + filename;
+            return output;
         }
 
         // GET api/values/3
+        
         [HttpGet("getinfo/{jobId}")]
-        public async Task<List<Output>> GetJobInfo(string jobId)
+        public async Task<Dictionary<string, string>> GetJobInfo(string jobId)
         {
             var client = new HttpClient();
             var url = "https://api2.online-convert.com/jobs/" + jobId;
@@ -61,13 +66,15 @@ namespace voiceApi.Controllers
             var response = await client.GetAsync(url);
             var strResponse = await response.Content.ReadAsStringAsync();
             UploadOutput getJob = JsonConvert.DeserializeObject<UploadOutput>(strResponse);
-            return getJob.output;
+            var output = new Dictionary<string, string>();
+            output["output"] = getJob.output[0].uri;
+            return output;
         }
 
         // POST api/values
         [HttpPost]
         [Route("server")]
-        public async Task<string> PostCreateServer()
+        public async Task<object> PostCreateServer()
         {
             var conv = new Conversion();
             conv.category = "audio";
@@ -87,10 +94,10 @@ namespace voiceApi.Controllers
             var response = await client.PostAsync(url, data);
 
             var strResponse = await response.Content.ReadAsStringAsync();
-            var server = JsonConvert.DeserializeObject<ConversionServer>(strResponse);
+            return  JsonConvert.DeserializeObject<ConversionServer>(strResponse);
 
-            string serverID = server.server + "/upload-file/" + server.id;
-            return serverID;
+            //string serverID = server.server + "/upload-file/" + server.id;
+            //return serverID;
         }
 
         public class CustomModel
@@ -101,7 +108,7 @@ namespace voiceApi.Controllers
 
         [HttpPost]
         [Route("upload")]
-        public async Task<string> UploadFileServer([FromBody] CustomModel data )
+        public async Task<Object> UploadFileServer([FromBody] CustomModel data )
         {
             using (var httpClient = new HttpClient())
             {
@@ -120,8 +127,8 @@ namespace voiceApi.Controllers
                                 httpClient.DefaultRequestHeaders.Add("x-oc-api-key", "744be7d281d6b3b6871baef24cf58052");
                                 HttpResponseMessage response = await httpClient.PostAsync(data.server, form);
                                 var strResponse = await response.Content.ReadAsStringAsync();
-                                var rootId = JsonConvert.DeserializeObject<UploadedFile>(strResponse);
-                                return rootId.id.job;
+                                return JsonConvert.DeserializeObject<UploadedFile>(strResponse);
+                                /*return rootId.id.job;*/
 
                             }
                         }
@@ -135,9 +142,13 @@ namespace voiceApi.Controllers
         {
             public string uploadedFileUrl { get; set; }
         }
+        class IdAfterConvert
+        {
+            public string id { get; set; }
+        }
         [HttpPost]
         [Route("convert")]
-        public async Task<string> convertToWAV([FromBody] CustomModel2 fileURL)
+        public async Task<object> convertToWAV([FromBody] CustomModel2 fileURL)
         {
 
             var input = new ConvertToWavFile.Input();
@@ -174,13 +185,10 @@ namespace voiceApi.Controllers
             var response = await client.PostAsync(url, data);
 
             var strResponse = await response.Content.ReadAsStringAsync();
-            var server = JsonConvert.DeserializeObject<IdAfterConvert>(strResponse);
-            return server.id;
+            return  JsonConvert.DeserializeObject<object>(strResponse);
+            //return server.id;
         }
-        class IdAfterConvert
-        {
-            public string id { get; set; }
-        }
+        
         // PUT api/values/5
         [HttpPut("{id}")]
         public void Put(int id, [FromBody] string value)
