@@ -24,7 +24,7 @@ namespace voiceApi.Controllers
 
         [HttpPost]
         [Route("enroll")]
-        public string EnrollSpeaker([FromBody] EnrollSpeaker enrollSpeaker )
+        public Dictionary<string, Guid> EnrollSpeaker([FromBody] EnrollSpeaker enrollSpeaker )
         {
             var sb = new StringBuilder();
 
@@ -35,9 +35,32 @@ namespace voiceApi.Controllers
             Console.WriteLine("");
 
             // Enroll Speaker 
-            Guid id = SpeakerVerificationMethods.SVEnrollSpeaker(svService, enrollSpeaker);
-            sb.Append($"Profile_id: {id}");
-            return sb.ToString();
+            var output = new Dictionary<string, Guid>();
+            output["guid"] = SpeakerVerificationMethods.SVEnrollSpeaker(svService, enrollSpeaker);
+            return output;
+        }
+
+
+
+        [HttpDelete]
+        [Route("delete")]
+        public Dictionary<string,string> DeleteSpeakers()
+        {
+                // Create the service
+                Console.WriteLine("Creating the Speaker Verification Service.");
+                var svService = new SpeakerVerificationService(Constants.SPEAKER_RECOGNITION_KEY);
+                Console.WriteLine("Done");
+                Console.WriteLine("");
+
+                //Delete all existing profiles
+                Console.WriteLine("Deleting All Existing Profiles.");
+                svService.DeleteAllProfiles().Wait();
+                Console.WriteLine("Done");
+                Console.WriteLine("");
+            var obj = new Dictionary<string, string>();
+            obj["OK"] = "Profiles Deleted";
+            return obj;
+
         }
 
 
